@@ -5,38 +5,43 @@ node {
 
     stage('Set Up Node.js') {
         def nodeHome = tool name: "NodeJS-23"
-        env.PATH = "${nodeHome}/bin:${env.PATH}"
+        env.PATH = "${nodeHome}\\bin;${env.PATH}" // Corrected for Windows
+    }
+
+    stage('Verify Node.js & npm') { // Fixed duplicate stage name
+        bat 'node -v'  // Verify Node.js version
+        bat 'npm -v'   // Verify npm version
     }
 
     stage('Install Dependencies') {
-        sh 'npm install'
+        bat 'npm install'
     }
 
     stage('Run Tests') {
-        sh 'npm test'
+        bat 'npm run test'
     }
 
     stage('Build Docker Image') {
-        sh 'docker build -t $USER/student-registry:$BUILD_NUMBER .'
+        bat 'docker build -t %USER%/student-registry:%BUILD_NUMBER% .'
     }
 
     stage('Login to Docker Hub') {
         withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_PASS')]) {
-            sh 'echo $DOCKER_PASS | docker login -u $USER --password-stdin'
+            bat 'echo %DOCKER_PASS% | docker login -u %USER% --password-stdin'
         }
     }
 
     stage('Push Docker Image') {
-        sh '''
-        docker push $USER/student-registry:$BUILD_NUMBER
-        docker tag $USER/student-registry:$BUILD_NUMBER $USER/student-registry:latest
-        docker push $USER/student-registry:latest
+        bat '''
+        docker push %USER%/student-registry:%BUILD_NUMBER%
+        docker tag %USER%/student-registry:%BUILD_NUMBER% %USER%/student-registry:latest
+        docker push %USER%/student-registry:latest
         '''
     }
 
     stage('Deploy to Server') {
-        sh '''
-        docker pull $USER/student-registry:latest
+        bat '''
+        docker pull %USER%/student-registry:latest
         docker-compose -f docker-compose.yml up -d
         '''
     }
