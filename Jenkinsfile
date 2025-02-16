@@ -22,26 +22,26 @@ node {
     }
 
     stage('Build Docker Image') {
-        bat 'docker build -t %USER%/student-registry:%BUILD_NUMBER% .'
+        bat 'docker build -t %DOCKER_USER%/student-registry:%BUILD_NUMBER% .'
     }
 
     stage('Login to Docker Hub') {
         withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_PASS')]) {
-            bat 'echo %DOCKER_PASS% | docker login -u %USER% --password-stdin'
+            bat 'echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin'
         }
     }
 
     stage('Push Docker Image') {
         bat '''
-        docker push %USER%/student-registry:%BUILD_NUMBER%
-        docker tag %USER%/student-registry:%BUILD_NUMBER% %USER%/student-registry:latest
-        docker push %USER%/student-registry:latest
+        docker push %DOCKER_USER%/student-registry:%BUILD_NUMBER%
+        docker tag %DOCKER_USER%/student-registry:%BUILD_NUMBER% %DOCKER_USER%/student-registry:latest
+        docker push %DOCKER_USER%/student-registry:latest
         '''
     }
 
     stage('Deploy to Server') {
         bat '''
-        docker pull %USER%/student-registry:latest
+        docker pull %DOCKER_USER%/student-registry:latest
         docker-compose -f docker-compose.yml up -d
         '''
     }
