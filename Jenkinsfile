@@ -4,7 +4,7 @@ node {
     }
 
     stage('Set Up Node.js') {
-        def nodeHome = tool name: "NodeJS-23", type: "hudson.tools.NodeJSInstallation"
+        def nodeHome = tool name: "NodeJS-23"
         env.PATH = "${nodeHome}/bin:${env.PATH}"
     }
 
